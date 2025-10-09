@@ -31,7 +31,7 @@ class ScenarioIn(BaseModel):
 class CostItem(BaseModel):
     code: str
     name: str
-    behavior: str                  # "per_ton"|"per_container"|"per_truck"|"per_month"|"fixed_per_shipment"|"percent_of_value"|"percent_of_cogs"
+    behavior: str                  # "per_ton"|"per_container"|"per_truck"|"per_month"|"per_ton_per_month"|"fixed_per_shipment"|"percent_of_value"|"percent_of_cogs"
     unit_amount_usd: float
     unit: str
     qty_source: str                # "Volume_MT"|"Containers"|"Trucks"|"Storage_Months"|"1"|"Value_USD"|"COGS_USD"
@@ -116,7 +116,7 @@ def seed_costs() -> List[CostItem]:
     costs.append(CostItem(code="KOL_INLAND_PER_MT", name="Additional inland transport Kolwezi / MT",
                           behavior="per_ton", unit_amount_usd=60, unit="MT", qty_source="Volume_MT", dest_scope="KOL*", category="logistics"))
     costs.append(CostItem(code="KOL_STORE_PER_MT_MONTH", name="Kolwezi storage / MT / month",
-                          behavior="per_month", unit_amount_usd=79, unit="month", qty_source="Storage_Months", dest_scope="KOL*", category="logistics"))
+                          behavior="per_ton_per_month", unit_amount_usd=79, unit="MT·month", qty_source="Volume_MT×Storage_Months", dest_scope="KOL*", category="logistics"))
 
     # -------- Insurance (percent value-based) --------
     costs.append(CostItem(code="INS_KIN_VALUE_PCT", name="Insurance (value-based) Kinshasa",
@@ -198,6 +198,9 @@ def _compute_internal(s: ScenarioIn) -> ComputeOut:
             cost = qty * item.unit_amount_usd
         elif item.behavior == "per_month":
             qty = s.storage_months
+            cost = qty * item.unit_amount_usd
+        elif item.behavior == "per_ton_per_month":
+            qty = s.volume_mt * s.storage_months
             cost = qty * item.unit_amount_usd
         elif item.behavior == "fixed_per_shipment":
             qty = 1
