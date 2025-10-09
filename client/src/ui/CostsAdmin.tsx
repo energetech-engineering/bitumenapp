@@ -1,50 +1,31 @@
-﻿import React,{useEffect,useState} from "react";
-import { listCosts, updateCost, resetCosts } from "../lib/api";
+﻿import React, { useEffect, useState } from "react";
+import { listCosts, saveCost } from "../lib/api";
 
 type CostItem = {
-  id?:number; code:string; name:string;
-  behavior:string; unit_amount_usd:number; unit:string;
-  qty_source:string; dest_scope:string; category:string; notes?:string;
+  code:string; name:string;
+  behavior:"per_ton"|"per_container"|"per_truck"|"per_month"|"fixed_per_shipment"|"percent_of_value";
+  unit_amount_usd:number; unit:string;
+  qty_source:"Volume_MT"|"Containers"|"Trucks"|"Storage_Months"|"1"|"Value_USD";
+  dest_scope:"LUB*"|"KIN*"|"KOL*";
+  category:"product"|"logistics"|"insurance"|"finance";
 };
-
-const CATEGORY_OPTIONS = [
-  "product","ocean_freight","port_clearance","port_handling","shipping_line",
-  "storage","handling","inland_trucking","customs","feri","agency","admin",
-  "bank","insurance","finance","shrinkage"
-];
 
 export default function CostsAdmin(){
   const [items,setItems]=useState<CostItem[]>([]);
-  const [saving,setSaving]=useState<string|null>(null);
+  const [saving,setSaving]=useState<string | null>(null);
 
-  async function load(){ setItems(await listCosts()); }
+  async function load(){ try{ setItems(await listCosts()); } catch(e){ console.error(e); } }
   useEffect(()=>{ load(); },[]);
 
-  async function onSave(row:CostItem){
-    setSaving(row.code);
-    try{
-      await updateCost(row.code,row);
-      await load();
-      window.dispatchEvent(new CustomEvent("costs-updated"));
-    } finally { setSaving(null); }
-  }
-
-  async function onReset(){
-    if(!confirm("Reset all costs to defaults (seed_costs.json)?")) return;
-    await resetCosts(); await load();
-    window.dispatchEvent(new CustomEvent("costs-updated"));
+  async function save(it:CostItem){
+    setSaving(it.code);
+    try{ await saveCost(it); await load(); } finally{ setSaving(null); }
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Costs — Admin</h3>
-        <button className="px-3 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700" onClick={onReset}>
-          Reset to defaults
-        </button>
-      </div>
-
-      <div className="section overflow-auto">
+    <div className="section">
+      <h2 className="text-lg font-semibold mb-4">Costs — Admin</h2>
+      <div className="overflow-auto">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="text-left border-b">
@@ -54,60 +35,60 @@ export default function CostsAdmin(){
               <th className="py-2 pr-3">Unit $</th>
               <th className="py-2 pr-3">Unit</th>
               <th className="py-2 pr-3">Qty Source</th>
-              <th className="py-2 pr-3">Dest Scope</th>
+              <th className="py-2 pr-3">Dest scope</th>
               <th className="py-2 pr-3">Category</th>
               <th className="py-2 pr-3">Action</th>
             </tr>
           </thead>
           <tbody>
-            {items.map((it)=>(
-              <tr key={it.code} className="border-b">
-                <td className="py-1 pr-3">{it.code}</td>
-                <td className="py-1 pr-3">
-                  <input className="input" value={it.name}
-                    onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,name:e.target.value}:x))}/>
-                </td>
-                <td className="py-1 pr-3">
-                  <select className="input" value={it.behavior}
-                    onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,behavior:e.target.value}:x))}>
-                    <option>per_ton</option>
-                    <option>per_container</option>
-                    <option>per_truck</option>
-                    <option>per_month</option>
-                    <option>fixed_per_shipment</option>
-                    <option>percent_of_value</option>
-                  </select>
-                </td>
-                <td className="py-1 pr-3">
-                  <input className="input" type="number" step="0.01" value={it.unit_amount_usd}
-                    onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,unit_amount_usd:Number(e.target.value)}:x))}/>
-                </td>
-                <td className="py-1 pr-3">
-                  <input className="input" value={it.unit}
-                    onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,unit:e.target.value}:x))}/>
-                </td>
-                <td className="py-1 pr-3">
-                  <input className="input" value={it.qty_source}
-                    onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,qty_source:e.target.value}:x))}/>
-                </td>
-                <td className="py-1 pr-3">
-                  <input className="input" value={it.dest_scope}
-                    onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,dest_scope:e.target.value}:x))}/>
-                </td>
-                <td className="py-1 pr-3">
-                  <select className="input" value={it.category}
-                    onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,category:e.target.value}:x))}>
-                    {CATEGORY_OPTIONS.map(c=> <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </td>
-                <td className="py-1 pr-3">
-                  <button className="px-3 py-1 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
-                          disabled={saving===it.code} onClick={()=>onSave(it)}>
-                    {saving===it.code?"Saving…":"Save"}
-                  </button>
-                </td>
-              </tr>
-            ))}
+          {items.map((it,i)=>(
+            <tr key={it.code} className="border-b">
+              <td className="py-1 pr-3">{it.code}</td>
+              <td className="py-1 pr-3">
+                <input className="input" value={it.name} onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,name:e.target.value}:x))}/>
+              </td>
+              <td className="py-1 pr-3">
+                <select className="input" value={it.behavior}
+                  onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,behavior:e.target.value as any}:x))}>
+                  <option>per_ton</option><option>per_container</option><option>per_truck</option>
+                  <option>per_month</option><option>fixed_per_shipment</option><option>percent_of_value</option>
+                </select>
+              </td>
+              <td className="py-1 pr-3">
+                <input className="input" type="number" step="0.01" value={it.unit_amount_usd}
+                  onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,unit_amount_usd:Number(e.target.value)}:x))}/>
+              </td>
+              <td className="py-1 pr-3">
+                <input className="input" value={it.unit}
+                  onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,unit:e.target.value}:x))}/>
+              </td>
+              <td className="py-1 pr-3">
+                <select className="input" value={it.qty_source}
+                  onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,qty_source:e.target.value as any}:x))}>
+                  <option>Volume_MT</option><option>Containers</option><option>Trucks</option>
+                  <option>Storage_Months</option><option>1</option><option>Value_USD</option>
+                </select>
+              </td>
+              <td className="py-1 pr-3">
+                <select className="input" value={it.dest_scope}
+                  onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,dest_scope:e.target.value as any}:x))}>
+                  <option>LUB*</option><option>KIN*</option><option>KOL*</option>
+                </select>
+              </td>
+              <td className="py-1 pr-3">
+                <select className="input" value={it.category}
+                  onChange={e=>setItems(items.map(x=>x.code===it.code?{...x,category:e.target.value as any}:x))}>
+                  <option>product</option><option>logistics</option><option>insurance</option><option>finance</option>
+                </select>
+              </td>
+              <td className="py-1 pr-3">
+                <button className="px-3 py-1 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                        disabled={saving===it.code} onClick={()=>save(it)}>
+                  {saving===it.code? "Saving..." : "Save"}
+                </button>
+              </td>
+            </tr>
+          ))}
           </tbody>
         </table>
       </div>
