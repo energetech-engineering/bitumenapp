@@ -1,0 +1,57 @@
+name: Deploy Frontend to Cloud Storage
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+env:
+  STATIC_BUCKET: your-static-site-bucket
+
+jobs:
+  deploy:
+    name: Build and Upload Static Site
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: client
+        run: npm install
+
+      - name: Build static bundle
+        working-directory: client
+        run: npm run build
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/000000000000/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID
+          service_account: github-deployer@your-gcp-project-id.iam.gserviceaccount.com
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: your-gcp-project-id
+
+      - name: Upload to Cloud Storage bucket
+        run: |
+          gsutil -m rsync -r client/dist "gs://${STATIC_BUCKET}"
+          gsutil setmeta -h "Cache-Control: no-cache" "gs://${STATIC_BUCKET}/index.html"
+
+      - name: Set default website files
+        run: |
+          gsutil web set -m index.html -e index.html "gs://${STATIC_BUCKET}"
