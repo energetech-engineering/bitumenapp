@@ -33,8 +33,9 @@ export default function App(){
     {name:"Logistics",value:breakdown.logistics_excl_cogs_ins||0},
     {name:"Insurance",value:breakdown.insurance||0},
     {name:"Shrinkage",value:breakdown.shrinkage||0},
-    {name:"Finance",value:breakdown.finance||0}
-  ],[breakdown]);
+    {name:"Finance",value:breakdown.finance||0},
+    {name:"Partner Profit",value:breakdown.partner_profit||0}
+  ].filter(item => item.value > 0),[breakdown]);
 
   const revCostMargin=useMemo(()=>[
     {name:"Revenue",value:kpis.gross_revenue||0},
@@ -162,6 +163,18 @@ export default function App(){
                       <td>{l.name}</td><td>{l.qty}</td><td>{l.unit}</td><td>{l.unit_amount_usd}</td><td>{CURRENCY(l.cost_usd||0)}</td>
                     </tr>
                   ))}
+                  {(breakdown.shrinkage||0) > 0 && (
+                    <>
+                      <tr className="border-b font-medium bg-orange-50"><td colSpan={5}>Shrinkage</td></tr>
+                      <tr className="border-b"><td>Product shrinkage ({scenario.shrinkage_pct}% of COGS)</td><td colSpan={3}></td><td>{CURRENCY(breakdown.shrinkage||0)}</td></tr>
+                    </>
+                  )}
+                  {(breakdown.finance||0) > 0 && (
+                    <>
+                      <tr className="border-b font-medium bg-blue-50"><td colSpan={5}>Finance Cost</td></tr>
+                      <tr className="border-b"><td>Working capital financing ({scenario.annual_finance_rate_pct}% annual rate)</td><td colSpan={3}></td><td>{CURRENCY(breakdown.finance||0)}</td></tr>
+                    </>
+                  )}
                   {(breakdown.partner_profit||0) > 0 && (
                     <>
                       <tr className="border-b font-medium bg-purple-50"><td colSpan={5}>Partner Profit Share</td></tr>

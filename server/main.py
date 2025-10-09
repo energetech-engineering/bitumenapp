@@ -222,54 +222,26 @@ def _compute_internal(s: ScenarioIn) -> ComputeOut:
             total_ins += cost
 
     shrink_loss  = (s.shrinkage_pct/100.0) * cogs_total
-    finance_cost = 0.0  # potremo riattivare più avanti con DPO/DSO
     
     # --- Partner Profit ---
     partner_profit = (s.partner_profit_pct / 100.0) * sell_unit * s.volume_mt
 
     # --- Finance cost (NWC model) ---
     try:
-        rate = float(getattr(req, "annual_finance_rate_pct", 0) or 0) / 100.0
-        dso  = float(getattr(req, "dso_sell_days", 0) or 0)
-        dpo  = float(getattr(req, "dpo_buy_days", 0) or 0)
-        inv_days = max(0.0, float(getattr(req, "storage_months", 0) or 0) * 30.0)
-        volume = float(getattr(req, "volume_mt", 0) or 0)
-        sell   = float(getattr(req, "sell_price_per_mt", 0) or 0)
-        buy    = float(getattr(req, "buy_price_per_mt", 0) or 0)
-        revenue = volume * sell
-        cogs    = volume * buy
+        rate = s.annual_finance_rate_pct / 100.0
+        dso  = s.dso_sell_days
+        dpo  = s.dpo_buy_days
+        inv_days = max(0.0, s.storage_months * 30.0)
         AR  = revenue * (dso / 365.0)
-        INV = cogs    * (inv_days / 365.0)
-        AP  = cogs    * (dpo / 365.0)
-        _nwc = max(0.0, AR + INV - AP)
-        finance_cost = rate * _nwc
-    except Exception:
-        finance_cost = 0.0
-    # --- end finance cost ---
-    # --- Finance cost (NWC model) ---
-    try:
-        rate = float(getattr(req, "annual_finance_rate_pct", 0) or 0) / 100.0
-        dso  = float(getattr(req, "dso_sell_days", 0) or 0)
-        dpo  = float(getattr(req, "dpo_buy_days", 0) or 0)
-        inv_days = max(0.0, float(getattr(req, "storage_months", 0) or 0) * 30.0)
-        volume = float(getattr(req, "volume_mt", 0) or 0)
-        sell   = float(getattr(req, "sell_price_per_mt", 0) or 0)
-        buy    = float(getattr(req, "buy_price_per_mt", 0) or 0)
-        revenue = volume * sell
-        cogs    = volume * buy
-        AR  = revenue * (dso / 365.0)
-        INV = cogs    * (inv_days / 365.0)
-        AP  = cogs    * (dpo / 365.0)
+        INV = cogs_total * (inv_days / 365.0)
+        AP  = cogs_total * (dpo / 365.0)
         _nwc = max(0.0, AR + INV - AP)
         finance_cost = rate * _nwc
     except Exception:
         finance_cost = 0.0
     # --- end finance cost ---
 
-
-
-
-    total_cost = ((cogs_total + total_log + total_ins + shrink_loss + finance_cost) + finance_cost) + finance_cost + partner_profit
+    total_cost = cogs_total + total_log + total_ins + shrink_loss + finance_cost + partner_profit
     net_margin = revenue - total_cost
 
     kpis = {
