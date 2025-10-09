@@ -65,7 +65,15 @@ gcloud services enable \
    gsutil web set -m index.html -e index.html "gs://${bucket}"
    ```
 
-3. **(Optional) Enable Cloud CDN** for better latency:
+3. **Make the bucket publicly accessible**:
+   ```bash
+   gsutil iam ch allUsers:objectViewer "gs://${bucket}"
+   ```
+
+   After this step, your frontend will be accessible at:
+   - **`https://storage.googleapis.com/bitumenapp-static-site-bucket/index.html`**
+
+4. **(Optional) Enable Cloud CDN** for better latency:
    ```bash
    gcloud compute backend-buckets create bitumenapp-frontend \
      --gcs-bucket-name="${bucket}" \
@@ -188,8 +196,15 @@ If you prefer manual approvals or different credentials per branch, create envir
 
 ## 9. Post-Deployment Checklist
 
-- Confirm the Cloud Run service URL responds (e.g., `https://bitumenapp-api-<hash>-uc.a.run.app/docs`).
-- Verify the Cloud Storage bucket serves `index.html`. If using a custom domain, complete DNS validation and SSL provisioning through Google-managed certificates.
+- **Backend**: Confirm the Cloud Run service URL responds:
+  - API docs: `https://bitumenapp-api-<hash>-uc.a.run.app/docs`
+  - Health check: `https://bitumenapp-api-<hash>-uc.a.run.app/api/health`
+  
+- **Frontend**: Access your static site at:
+  - Direct URL: `https://storage.googleapis.com/bitumenapp-static-site-bucket/index.html`
+  - Or via the bucket's website endpoint (if configured)
+
+- If using a custom domain, complete DNS validation and SSL provisioning through Google-managed certificates.
 - For private data, configure CORS on the bucket if the site consumes the API from a different origin: `gsutil cors set cors.json "gs://${bucket}"`.
 - Monitor logs via **Cloud Logging** and set up alerts if needed.
 
