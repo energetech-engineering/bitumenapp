@@ -12,6 +12,7 @@ on:
 env:
   PROJECT_ID: bitumenapp
   STATIC_BUCKET: bitumenapp-static-site-bucket
+  API_URL: https://bitumenapp-api-pijorbdzaq-uc.a.run.app
 
 jobs:
   deploy:
@@ -35,6 +36,8 @@ jobs:
 
       - name: Build static bundle
         working-directory: client
+        env:
+          VITE_API_URL: ${{ env.API_URL }}
         run: npm run build
 
       - name: Authenticate to Google Cloud

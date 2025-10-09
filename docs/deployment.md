@@ -183,9 +183,22 @@ Two workflows were added under `.github/workflows/`:
 - `deploy-backend.yml`: Builds `server/` with Cloud Build and deploys to Cloud Run.
 - `deploy-frontend.yml`: Builds the Vite frontend and syncs the `client/dist` folder to the website bucket.
 
-### 7.1. Replace placeholders or use repository variables
+### 7.1. Configure API URL for Frontend
 
-Each workflow contains placeholder values such as `your-gcp-project-id`, `your-gcp-region`, and the dummy Workload Identity Provider string. Replace them with the real values or define repository variables and secrets, then reference them in the workflow.
+The frontend workflow must know the backend URL. Update `.github/workflows/deploy-frontend.yml`:
+
+```yaml
+env:
+  PROJECT_ID: bitumenapp
+  STATIC_BUCKET: bitumenapp-static-site-bucket
+  API_URL: https://your-cloud-run-url.run.app  # ← Update with your actual Cloud Run URL
+```
+
+The workflow will inject this as `VITE_API_URL` during the build step.
+
+### 7.2. Replace placeholders or use repository variables
+
+Each workflow contains placeholder values. Replace them with the real values or define repository variables and secrets, then reference them in the workflow.
 
 Example edits:
 
