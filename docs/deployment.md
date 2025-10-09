@@ -106,7 +106,13 @@ gcloud projects add-iam-policy-binding "${project_id}" \
 gcloud projects add-iam-policy-binding "${project_id}" \
   --member="serviceAccount:${deploy_sa}" \
   --role="roles/storage.admin"
+
+gcloud projects add-iam-policy-binding "${project_id}" \
+  --member="serviceAccount:${deploy_sa}" \
+  --role="roles/viewer"
 ```
+
+> **Note**: The `roles/viewer` permission allows GitHub Actions to stream Cloud Build logs during deployment.
 
 If you enabled Cloud CDN with a backend bucket, also grant `roles/compute.loadBalancerAdmin` as needed.
 
