@@ -11,7 +11,7 @@ const defaultScenario:ScenarioIn={
   destination:"LUB", incoterm:"CFR",
   volume_mt:700, buy_price_per_mt:530, sell_price_per_mt:1700,
   shrinkage_pct:0.3, storage_months:1, dpo_buy_days:7, dso_sell_days:10,
-  annual_finance_rate_pct:12, mt_per_container:40, mt_per_truck:58
+  annual_finance_rate_pct:12, partner_profit_pct:5, mt_per_container:40, mt_per_truck:58
 };
 
 const COLORS=["#1e40af","#0ea5e9","#22c55e","#f59e0b","#ef4444"];
@@ -96,6 +96,8 @@ export default function App(){
               <input className="input" type="number" value={scenario.dso_sell_days} onChange={e=>setScenario({...scenario,dso_sell_days:Number(e.target.value)})}/></div>
             <div><label className="label">Annual Finance Rate %</label>
               <input className="input" type="number" step="0.01" value={scenario.annual_finance_rate_pct} onChange={e=>setScenario({...scenario,annual_finance_rate_pct:Number(e.target.value)})}/></div>
+            <div><label className="label">Partner Profit %</label>
+              <input className="input" type="number" step="0.01" value={scenario.partner_profit_pct} onChange={e=>setScenario({...scenario,partner_profit_pct:Number(e.target.value)})}/></div>
             <div><label className="label">MT per Container</label>
               <input className="input" type="number" step="0.1" value={scenario.mt_per_container} onChange={e=>setScenario({...scenario,mt_per_container:Number(e.target.value)})}/></div>
             <div><label className="label">MT per Truck</label>
@@ -160,6 +162,12 @@ export default function App(){
                       <td>{l.name}</td><td>{l.qty}</td><td>{l.unit}</td><td>{l.unit_amount_usd}</td><td>{CURRENCY(l.cost_usd||0)}</td>
                     </tr>
                   ))}
+                  {(breakdown.partner_profit||0) > 0 && (
+                    <>
+                      <tr className="border-b font-medium bg-purple-50"><td colSpan={5}>Partner Profit Share</td></tr>
+                      <tr className="border-b"><td>Partner profit ({scenario.partner_profit_pct}% of sell price)</td><td colSpan={3}></td><td>{CURRENCY(breakdown.partner_profit||0)}</td></tr>
+                    </>
+                  )}
                   <tr className="border-t font-semibold bg-slate-50"><td>Net Margin</td><td colSpan={3}></td><td>{CURRENCY(kpis.net_margin||0)}</td></tr>
                 </tbody>
               </table>

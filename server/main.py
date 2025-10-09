@@ -24,6 +24,7 @@ class ScenarioIn(BaseModel):
     dpo_buy_days: int = 0
     dso_sell_days: int = 0
     annual_finance_rate_pct: float = 0.0
+    partner_profit_pct: float = 5.0
     mt_per_container: float = 40
     mt_per_truck: float = 58
 
@@ -222,6 +223,9 @@ def _compute_internal(s: ScenarioIn) -> ComputeOut:
 
     shrink_loss  = (s.shrinkage_pct/100.0) * cogs_total
     finance_cost = 0.0  # potremo riattivare più avanti con DPO/DSO
+    
+    # --- Partner Profit ---
+    partner_profit = (s.partner_profit_pct / 100.0) * sell_unit * s.volume_mt
 
     # --- Finance cost (NWC model) ---
     try:
@@ -265,7 +269,7 @@ def _compute_internal(s: ScenarioIn) -> ComputeOut:
 
 
 
-    total_cost = ((cogs_total + total_log + total_ins + shrink_loss + finance_cost) + finance_cost) + finance_cost
+    total_cost = ((cogs_total + total_log + total_ins + shrink_loss + finance_cost) + finance_cost) + finance_cost + partner_profit
     net_margin = revenue - total_cost
 
     kpis = {
@@ -282,6 +286,7 @@ def _compute_internal(s: ScenarioIn) -> ComputeOut:
         "insurance": total_ins,
         "shrinkage": shrink_loss,
         "finance": finance_cost,
+        "partner_profit": partner_profit,
         "lines": lines,
         "route_legs": ROUTE_LEGS.get(s.destination, [])
     }

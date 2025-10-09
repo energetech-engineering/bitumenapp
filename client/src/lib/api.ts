@@ -12,6 +12,7 @@ export type ScenarioIn = {
   dpo_buy_days: number;
   dso_sell_days: number;
   annual_finance_rate_pct: number;
+  partner_profit_pct: number;
   mt_per_container: number;
   mt_per_truck: number;
 };
