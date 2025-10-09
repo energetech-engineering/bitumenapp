@@ -30,10 +30,10 @@ class ScenarioIn(BaseModel):
 class CostItem(BaseModel):
     code: str
     name: str
-    behavior: str                  # "per_ton"|"per_container"|"per_truck"|"per_month"|"fixed_per_shipment"|"percent_of_value"
+    behavior: str                  # "per_ton"|"per_container"|"per_truck"|"per_month"|"fixed_per_shipment"|"percent_of_value"|"percent_of_cogs"
     unit_amount_usd: float
     unit: str
-    qty_source: str                # "Volume_MT"|"Containers"|"Trucks"|"Storage_Months"|"1"|"Value_USD"
+    qty_source: str                # "Volume_MT"|"Containers"|"Trucks"|"Storage_Months"|"1"|"Value_USD"|"COGS_USD"
     dest_scope: str                # "LUB*"|"KIN*"|"KOL*"
     category: str                  # "product"|"logistics"|"insurance"|"finance"
 
@@ -77,6 +77,9 @@ def seed_costs() -> List[CostItem]:
         ("DRC_AGENCY_TRK","DRC Agency fees / truck","per_truck",81.2,"truck","Trucks","logistics"),
         ("DRC_FERI_CNTR","DRC Import FERI / container","per_container",101.46,"container","Containers","logistics"),
         ("DRC_OGEFREM_TRK","DRC OGEFREM attestation / truck","per_truck",182,"truck","Trucks","logistics"),
+        ("BIVAC_FEE_PCT_LUB","Bivac fee — 2% of purchase value","percent_of_cogs",0.02,"fraction_of_value","COGS_USD","logistics"),
+        ("ADMIN_SURCHARGE_PCT_LUB","Administrative surcharge — 2% of purchase value","percent_of_cogs",0.02,"fraction_of_value","COGS_USD","logistics"),
+        ("BANK_FEE_PCT_LUB","Bank collection fee — 5% of purchase value","percent_of_cogs",0.05,"fraction_of_value","COGS_USD","logistics"),
     ]
     for code,name,beh,amt,unit,qty_src,cat in LUB:
         costs.append(CostItem(code=code,name=name,behavior=beh,unit_amount_usd=amt,unit=unit,qty_source=qty_src,dest_scope="LUB*",category=cat))
@@ -200,6 +203,9 @@ def _compute_internal(s: ScenarioIn) -> ComputeOut:
         elif item.behavior == "percent_of_value":
             qty = 1
             cost = revenue * item.unit_amount_usd
+        elif item.behavior == "percent_of_cogs":
+            qty = 1
+            cost = cogs_total * item.unit_amount_usd
         else:
             qty = 0
             cost = 0
@@ -255,6 +261,10 @@ def _compute_internal(s: ScenarioIn) -> ComputeOut:
     except Exception:
         finance_cost = 0.0
     # --- end finance cost ---
+
+
+
+
     total_cost = ((cogs_total + total_log + total_ins + shrink_loss + finance_cost) + finance_cost) + finance_cost
     net_margin = revenue - total_cost
 
