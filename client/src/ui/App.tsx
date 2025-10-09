@@ -152,36 +152,36 @@ export default function App(){
             <div className="overflow-auto">
               <table className="min-w-full text-sm">
                 <thead><tr className="text-left border-b">
-                  <th className="py-2 pr-3">Item</th><th className="py-2 pr-3">Qty</th><th className="py-2 pr-3">Unit</th><th className="py-2 pr-3">Unit $</th><th className="py-2 pr-3">Cost</th>
+                  <th className="py-2 pr-3">Item</th><th className="py-2 pr-3 text-right">Qty</th><th className="py-2 pr-3 text-right">Unit</th><th className="py-2 pr-3 text-right">Unit $</th><th className="py-2 pr-3 text-right">Value</th>
                 </tr></thead>
                 <tbody>
-                  <tr className="border-b font-medium bg-slate-50"><td>Sales Price</td><td colSpan={3}></td><td>{CURRENCY(kpis.gross_revenue||0)}</td></tr>
-                  <tr className="border-b"><td>COGS (product)</td><td colSpan={3}></td><td>{CURRENCY(breakdown.cogs||0)}</td></tr>
+                  <tr className="border-b font-medium bg-slate-50"><td>Sales Price</td><td colSpan={3}></td><td className="text-right">{CURRENCY(kpis.gross_revenue||0)}</td></tr>
+                  <tr className="border-b"><td>COGS (product)</td><td colSpan={3}></td><td className="text-right">{CURRENCY(breakdown.cogs||0)}</td></tr>
                   <tr className="border-b font-medium"><td colSpan={5}>Logistics & Insurance</td></tr>
                   {logisticsLines.map((l:any,i:number)=>(
                     <tr key={i} className="border-b">
-                      <td>{l.name}</td><td>{l.qty}</td><td>{l.unit}</td><td>{l.unit_amount_usd}</td><td>{CURRENCY(l.cost_usd||0)}</td>
+                      <td>{l.name}</td><td className="text-right">{l.qty}</td><td className="text-right">{l.unit}</td><td className="text-right">{l.unit_amount_usd}</td><td className="text-right">{CURRENCY(l.cost_usd||0)}</td>
                     </tr>
                   ))}
                   {(breakdown.shrinkage||0) > 0 && (
                     <>
                       <tr className="border-b font-medium bg-orange-50"><td colSpan={5}>Shrinkage</td></tr>
-                      <tr className="border-b"><td>Product shrinkage ({scenario.shrinkage_pct}% of COGS)</td><td colSpan={3}></td><td>{CURRENCY(breakdown.shrinkage||0)}</td></tr>
+                      <tr className="border-b"><td>Product shrinkage ({scenario.shrinkage_pct}% of COGS)</td><td colSpan={3}></td><td className="text-right">{CURRENCY(breakdown.shrinkage||0)}</td></tr>
                     </>
                   )}
                   {(breakdown.finance||0) > 0 && (
                     <>
                       <tr className="border-b font-medium bg-blue-50"><td colSpan={5}>Finance Cost</td></tr>
-                      <tr className="border-b"><td>Working capital financing ({scenario.annual_finance_rate_pct}% annual rate)</td><td colSpan={3}></td><td>{CURRENCY(breakdown.finance||0)}</td></tr>
+                      <tr className="border-b"><td>Working capital financing ({scenario.annual_finance_rate_pct}% annual rate)</td><td colSpan={3}></td><td className="text-right">{CURRENCY(breakdown.finance||0)}</td></tr>
                     </>
                   )}
                   {(breakdown.partner_profit||0) > 0 && (
                     <>
                       <tr className="border-b font-medium bg-purple-50"><td colSpan={5}>Partner Profit Share</td></tr>
-                      <tr className="border-b"><td>Partner profit ({scenario.partner_profit_pct}% of sell price)</td><td colSpan={3}></td><td>{CURRENCY(breakdown.partner_profit||0)}</td></tr>
+                      <tr className="border-b"><td>Partner profit ({scenario.partner_profit_pct}% of sell price)</td><td colSpan={3}></td><td className="text-right">{CURRENCY(breakdown.partner_profit||0)}</td></tr>
                     </>
                   )}
-                  <tr className="border-t font-semibold bg-slate-50"><td>Net Margin</td><td colSpan={3}></td><td>{CURRENCY(kpis.net_margin||0)}</td></tr>
+                  <tr className="border-t font-semibold bg-slate-50"><td>Net Margin</td><td colSpan={3}></td><td className="text-right">{CURRENCY(kpis.net_margin||0)}</td></tr>
                 </tbody>
               </table>
             </div>
