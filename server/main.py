@@ -109,9 +109,10 @@ def seed_costs() -> List[CostItem]:
     for code,name,beh,amt,unit,qty_src,cat in KIN:
         costs.append(CostItem(code=code,name=name,behavior=beh,unit_amount_usd=amt,unit=unit,qty_source=qty_src,dest_scope="KIN*",category=cat))
 
-    # -------- KOL (replica LUB + add-on inland/storage) --------
+    # -------- KOL (replica LUB + add-on inland/storage, excluding Lubumbashi warehousing) --------
     for code,name,beh,amt,unit,qty_src,cat in LUB:
-        costs.append(CostItem(code=f"KOL_{code}",name=name,behavior=beh,unit_amount_usd=amt,unit=unit,qty_source=qty_src,dest_scope="KOL*",category=cat))
+        if code != "WH_LUB_MONTH":  # Exclude Lubumbashi warehousing for KOL
+            costs.append(CostItem(code=f"KOL_{code}",name=name,behavior=beh,unit_amount_usd=amt,unit=unit,qty_source=qty_src,dest_scope="KOL*",category=cat))
     costs.append(CostItem(code="KOL_INLAND_PER_MT", name="Additional inland transport Kolwezi / MT",
                           behavior="per_ton", unit_amount_usd=60, unit="MT", qty_source="Volume_MT", dest_scope="KOL*", category="logistics"))
     costs.append(CostItem(code="KOL_STORE_PER_MT_MONTH", name="Kolwezi storage / MT / month",
