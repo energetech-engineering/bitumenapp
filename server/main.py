@@ -25,7 +25,7 @@ class CostItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String, unique=True, index=True)
     name = Column(String)
-    behavior = Column(String)  # CostBehavior
+    behavior = Column(String)
     unit_amount_usd = Column(Float)  # 0 if percent_of_value (rate on input)
     unit = Column(String) # MT/container/truck/month/percent
     qty_source = Column(String) # "Volume_MT"/"Containers"/"Trucks"/"Storage_Months"/"1" or "-"/"shipment"
