@@ -81,6 +81,27 @@ gcloud services enable \
    ```
    Then create a load balancer with the backend bucket if you need a custom domain.
 
+### CORS Setup
+
+The backend FastAPI application already includes CORS middleware configured to allow requests from any origin (`allow_origins=["*"]`). This is suitable for development and testing.
+
+**For production**, edit `server/main.py` to restrict allowed origins:
+
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://storage.googleapis.com",  # Cloud Storage static site
+        "https://yourdomain.com",          # Your custom domain (if applicable)
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+After making changes, redeploy the backend by pushing to the `main` branch or triggering the GitHub Actions workflow manually.
+
 ## 5. Create the Deployment Service Account
 
 ```bash
@@ -204,8 +225,15 @@ If you prefer manual approvals or different credentials per branch, create envir
   - Direct URL: `https://storage.googleapis.com/bitumenapp-static-site-bucket/index.html`
   - Or via the bucket's website endpoint (if configured)
 
+- **CORS Configuration**: The backend is pre-configured to allow cross-origin requests from any domain (`allow_origins=["*"]`). For production, update `server/main.py` to restrict origins:
+  ```python
+  allow_origins=[
+      "https://storage.googleapis.com",
+      "https://yourdomain.com",  # Add your custom domain
+  ]
+  ```
+
 - If using a custom domain, complete DNS validation and SSL provisioning through Google-managed certificates.
-- For private data, configure CORS on the bucket if the site consumes the API from a different origin: `gsutil cors set cors.json "gs://${bucket}"`.
 - Monitor logs via **Cloud Logging** and set up alerts if needed.
 
 ## 10. Cleaning Up (Optional)

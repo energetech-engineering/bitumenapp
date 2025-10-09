@@ -238,9 +238,14 @@ def compute_scenario(scn: ScenarioIn, sell_per_mt: float, costs: List[CostItem])
 # ---------------------- App ----------------------
 app = FastAPI(title="Trade Deal Profitability API", version="2.0.0")
 
+# CORS middleware - allows frontend to call API from different domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "*",  # For development - allows all origins
+        # "https://storage.googleapis.com",  # For production - restrict to your frontend domain
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
